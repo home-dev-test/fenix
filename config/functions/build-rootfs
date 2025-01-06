@@ -650,6 +650,15 @@ prepare_rootfs() {
 	rm -f $ROOTFS_TEMP/usr/sbin/policy-rc.d
 }
 
+clean_vars() {
+	chroot $ROOTFS_TEMP /bin/bash -c "apt-get remove -y --purge binutils binutils-aarch64-linux-gnu binutils-common gcc htop make nano x11-common xkb-data keyboard-configuration 7zip autoconf automake autotools-dev git-man git vim"
+	chroot $ROOTFS_TEMP /bin/bash -c "apt-get -y autoremove; apt-get autoremove --purge -y; apt-get clean"
+	chroot $ROOTFS_TEMP /bin/bash -c "rm -rf /var/lib/apt/lists/*"
+	chroot $ROOTFS_TEMP /bin/bash -c "find /var/cache/apt/archives /usr/share/doc /usr/share/man -type f ! -name '.*' -delete"
+	chroot $ROOTFS_TEMP /bin/bash -c "rm -rf /usr/share/doc/*"
+	chroot $ROOTFS_TEMP /bin/bash -c "find /var/log -type f -exec rm -f {} \;"
+}
+
 ## Rootfs
 build_rootfs() {
 
@@ -693,6 +702,8 @@ build_rootfs() {
 		cp archives/logo/${VENDOR}/logo.img $BUILD_IMAGES
 
 	qemu_helper_deactivate "$ROOTFS_TEMP"
+
+	clean_vars
 
 	## Unmount to get the rootfs.img
 	sync
